@@ -11,15 +11,15 @@ tasks:
         msg: "'gum' is not installed. do 'task update:gum' to install it."
     silent: true
     cmds:
-      - task choose
+      - task: choose
 
   choose:
     vars:
       AREAS:
         sh: |
-          task --list -j --sort none |
+          task -t {{.ROOT_TASKFILE}} --list -j --sort none |
           jq -r '.tasks[].name' |
-          sed -E 's/(.*):[^:]*/\\1/' |
+          sed -E 's/(.*):[^:]*/\1/' |
           uniq
       AREA:
         sh: gum choose --header="Choose an area" {{.AREAS | catLines}}
@@ -36,4 +36,5 @@ tasks:
     silent: true
     cmds:
       - gum style "task {{.CHOICE}}" --border=rounded --padding="0 1"
-      - task: "{{.TASK}}"
+      - task -t {{.ROOT_TASKFILE}} "{{.TASK}}"
+
