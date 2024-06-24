@@ -24,7 +24,7 @@ tasks:
       AREA:
         sh: gum choose --header="Choose an area" {{.AREAS | catLines}}
       TASKS:
-        sh: task --list -j |
+        sh: task --list -j --sort none |
             jq -r '.tasks[] | select(.name | startswith("{{.AREA}}:")) | (.name + "|" + .desc)' |
             column -t -s '|'
       CHOICES: |
