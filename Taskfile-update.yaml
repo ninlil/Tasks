@@ -56,7 +56,7 @@ tasks:
       REPO: AB-Lindex/tmpl8
       APP: tmpl8
       VERSION:
-        sh: which tmpl8 >/dev/null && tmpl8 --version | tr -d '\n'
+        sh: which tmpl8 >/dev/null && tmpl8 --version | tr -d '\n' || echo "not-found"
       JSON:
         sh: curl -L --silent https://api.github.com/repos/{{.REPO}}/releases/latest
       LATEST:
