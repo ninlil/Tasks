@@ -14,6 +14,8 @@ tasks:
       - task: tmpl8
       - task: yq
       - task: k9s
+      - task: bat
+      - task: eza
 
   go:
     desc: Upgrade Go to the latest version
@@ -123,3 +125,88 @@ tasks:
       - defer: rm {{.APP}}
       - sudo install {{.APP}} {{.TARGET}}
 
+  bat:
+    desc: Install/Upgrade 'bat' (github.com/sharkdp/bat)
+    vars:
+      APP: bat
+      REPO: sharkdp/bat
+      LATEST:
+        sh: curl -s "https://api.github.com/repos/{{.REPO}}/releases/latest" | jq -r .tag_name
+      VERSION:
+        sh: bat --version | awk '{print "v"$2}' || echo "not-found"
+    status:
+      - which {{.APP}}
+      - test "{{.VERSION}}" = "{{.LATEST}}"
+    cmds:
+      - cmd: gum style --foreground="#ff0" "Updating {{.APP}} from {{.VERSION}} to {{.LATEST}}"
+        silent: true
+      - curl -Lso /tmp/{{.APP}}.tar.gz "https://github.com/{{.REPO}}/releases/download/{{.LATEST}}/{{.APP}}-{{.LATEST}}-{{.ARCH_2}}-unknown-linux-gnu.tar.gz"
+      - defer: rm /tmp/{{.APP}}.tar.gz
+      - tar -xzf /tmp/{{.APP}}.tar.gz {{.APP}}-{{.LATEST}}-{{.ARCH_2}}-unknown-linux-gnu/{{.APP}} --strip-components 1
+      - defer: rm {{.APP}}
+      - sudo install {{.APP}} {{.TARGET}}
+
+  delta:
+    desc: Install/Upgrade 'delta' (github.com/dandavison/delta)
+    vars:
+      APP: delta
+      REPO: dandavison/delta
+      LATEST:
+        sh: curl -s "https://api.github.com/repos/{{.REPO}}/releases/latest" | jq -r .tag_name
+      VERSION:
+        sh: delta --version | awk '{print "v"$2}' || echo "not-found"
+    status:
+      - which {{.APP}}
+      - test "{{.VERSION}}" = "{{.LATEST}}"
+    cmds:
+      - cmd: gum style --foreground="#ff0" "Updating {{.APP}} from {{.VERSION}} to {{.LATEST}}"
+        silent: true
+      - curl -Lso /tmp/{{.APP}}.tar.gz "https://github.com/{{.REPO}}/releases/download/{{.LATEST}}/{{.APP}}-{{.LATEST}}-{{.ARCH_2}}-unknown-linux-gnu.tar.gz"
+      - defer: rm /tmp/{{.APP}}.tar.gz
+      - tar -xzf /tmp/{{.APP}}.tar.gz {{.APP}}-{{.LATEST}}-{{.ARCH_2}}-unknown-linux-gnu/{{.APP}} --strip-components 1
+      - defer: rm {{.APP}}
+      - sudo install {{.APP}} {{.TARGET}}
+
+  eza:
+    desc: Install/Upgrade 'delta' (github.com/eza-community/eza)
+    vars:
+      APP: eza
+      REPO: eza-community/eza
+      LATEST:
+        sh: curl -s "https://api.github.com/repos/{{.REPO}}/releases/latest" | jq -r .tag_name
+      VERSION:
+        sh: eza --version | head -n -1 | tail -n 1 | awk '{print $1}' || echo "not-found"
+    status:
+      - which {{.APP}}
+      - test "{{.VERSION}}" = "{{.LATEST}}"
+    cmds:
+      - cmd: gum style --foreground="#ff0" "Updating {{.APP}} from {{.VERSION}} to {{.LATEST}}"
+        silent: true
+      - curl -Lso /tmp/{{.APP}}.tar.gz "https://github.com/{{.REPO}}/releases/download/{{.LATEST}}/{{.APP}}_{{.ARCH_2}}-unknown-linux-gnu.tar.gz"
+      - defer: rm /tmp/{{.APP}}.tar.gz
+      - tar -xzf /tmp/{{.APP}}.tar.gz ./{{.APP}}
+      - defer: rm {{.APP}}
+      - sudo install {{.APP}} {{.TARGET}}
+
+
+  fzf:
+    desc: Install/Upgrade 'fzf' (github.com/junegunn/fzf)
+    vars:
+      APP: fzf
+      REPO: junegunn/fzf
+      LATEST:
+        sh: curl -s "https://api.github.com/repos/{{.REPO}}/releases/latest" | jq -r .tag_name | tr -d 'v' 
+      VERSION:
+        sh: fzf --version | awk '{print $1}' || echo "not-found"
+    status:
+      - which {{.APP}}
+      - test "{{.VERSION}}" = "{{.LATEST}}"
+    cmds:
+      - cmd: gum style --foreground="#ff0" "Updating {{.APP}} from {{.VERSION}} to {{.LATEST}}"
+        silent: true
+      - curl -Lso /tmp/{{.APP}}.tar.gz "https://github.com/{{.REPO}}/releases/download/v{{.LATEST}}/{{.APP}}-{{.LATEST}}-{{OS}}_{{ARCH}}.tar.gz"
+      - defer: rm /tmp/{{.APP}}.tar.gz
+      - tar -tzf /tmp/{{.APP}}.tar.gz
+      - tar -xzf /tmp/{{.APP}}.tar.gz {{.APP}}
+      - defer: rm {{.APP}}
+      - sudo install {{.APP}} {{.TARGET}}
