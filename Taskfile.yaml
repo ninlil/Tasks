@@ -4,6 +4,12 @@ includes:
   update:
     taskfile: Taskfile-update.yaml
 
+  dev:
+    taskfile: Taskfile-dev.yaml
+
+  k8s:
+    taskfile: Taskfile-k8s.yaml
+
 tasks:
   default:
     preconditions:

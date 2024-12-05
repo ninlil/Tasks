@@ -154,7 +154,7 @@ tasks:
       LATEST:
         sh: curl -s "https://api.github.com/repos/{{.REPO}}/releases/latest" | jq -r .tag_name
       VERSION:
-        sh: delta --version | awk '{print "v"$2}' || echo "not-found"
+        sh: delta --version | awk '{print $2}' || echo "not-found"
     status:
       - which {{.APP}}
       - test "{{.VERSION}}" = "{{.LATEST}}"
@@ -188,7 +188,6 @@ tasks:
       - defer: rm {{.APP}}
       - sudo install {{.APP}} {{.TARGET}}
 
-
   fzf:
     desc: Install/Upgrade 'fzf' (github.com/junegunn/fzf)
     vars:
@@ -210,3 +209,47 @@ tasks:
       - tar -xzf /tmp/{{.APP}}.tar.gz {{.APP}}
       - defer: rm {{.APP}}
       - sudo install {{.APP}} {{.TARGET}}
+
+  fzf-share:
+    desc: Install/Upgrade fzf-share
+    cmds:
+      - task: fzf-share-clone
+      - task: fzf-share-pull
+
+  fzf-share-clone:
+    desc: Clone fzf-share
+    status:
+      - test -d /usr/local/share/fzf/.git
+    cmds:
+      - sudo git clone --depth 1 https://github.com/junegunn/fzf.git /usr/local/share/fzf
+
+  fzf-share-pull:
+    desc: Pull fzf-share
+    preconditions:
+      - test -d /usr/local/share/fzf/.git
+    cmds:
+      - cd /usr/local/share/fzf && sudo git pull
+
+
+  teller:
+    desc: Install/Upgrade 'fzf' (github.com/tellerops/teller)
+    vars:
+      APP: teller
+      REPO: tellerops/teller
+      LATEST:
+        sh: curl -s "https://api.github.com/repos/{{.REPO}}/releases/latest" | jq -r .tag_name | tr -d 'v' 
+      VERSION:
+        sh: teller --version | awk '{print $2}' || echo "not-found"
+    status:
+      - which {{.APP}}
+      - test "{{.VERSION}}" = "{{.LATEST}}"
+    cmds:
+      - cmd: gum style --foreground="#ff0" "Updating {{.APP}} from {{.VERSION}} to {{.LATEST}}"
+        silent: true
+      - curl -Lso /tmp/{{.APP}}.tar.xz "https://github.com/{{.REPO}}/releases/download/v{{.LATEST}}/{{.APP}}-{{.ARCH_2}}-{{OS}}.tar.xz"
+      - defer: rm /tmp/{{.APP}}.tar.xz
+      - tar -tvf /tmp/{{.APP}}.tar.xz
+      - tar -xvf /tmp/{{.APP}}.tar.xz {{.APP}}-{{.ARCH_2}}-{{OS}}/{{.APP}} --strip-components 1
+      - defer: rm {{.APP}}
+      - sudo install {{.APP}} {{.TARGET}}
+

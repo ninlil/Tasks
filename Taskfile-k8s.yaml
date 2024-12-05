@@ -1,0 +1,23 @@
+version: '3'
+
+tasks:
+  argo-rollout:
+    desc: Install kubectl-plugin for Argo Rollout
+    vars:
+      APP: kubectl-argo-rollouts
+      REPO: argoproj/argo-rollouts
+      LATEST:
+        sh: curl -s "https://api.github.com/repos/{{.REPO}}/releases/latest" | jq -r .tag_name
+      VERSION:
+        sh: kubectl-argo-rollouts version --short | sed -E 's/.* ([^+]*).*/\1/' || echo "not-found"
+    preconditions:
+      - which gum
+    status:
+      - which {{.APP}}
+      - test "{{.VERSION}}" = "{{.LATEST}}"
+    cmds:
+      - cmd: gum style --foreground="#ff0" "Updating {{.APP}} from {{.VERSION}} to {{.LATEST}}"
+        silent: true
+      - curl -Lso /tmp/{{.APP}} "https://github.com/{{.REPO}}/releases/download/{{.LATEST}}/{{.APP}}-{{OS}}-{{ARCH}}"
+      - defer: rm /tmp/{{.APP}}
+      - sudo install /tmp/{{.APP}} {{.TARGET}}

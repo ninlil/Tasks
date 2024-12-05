@@ -1,0 +1,43 @@
+version: '3'
+
+vars:
+  OS_CAP: '{{ OS | title }}'
+  ARCH_2: '{{ ARCH | replace "amd64" "x86_64" }}'
+  TARGET: /usr/local/bin
+
+tasks:
+  update_all:
+    desc: "Update all tools"
+    cmds:
+      - task: lazygit_update
+
+  lazygit_update:
+    desc: Upgrade 'lazygit' (github.com/jesseduffield/lazygit)
+    preconditions:
+      - sh: which lazygit 2>/dev/null
+        msg: "'lazygit' is not installed. do 'task lazygit_install' to install it."
+    cmds:
+      - task: lazygit_install
+
+  lazygit_install:
+    desc: Install/Upgrade 'lazygit' (github.com/jesseduffield/lazygit)
+    # https://github.com/jesseduffield/lazygit/releases/download/v0.44.1/lazygit_0.44.1_Linux_x86_64.tar.gz
+    # https://github.com/jesseduffield/lazygit/releases/download/v0.44.1/lazygit_0.44.1_Linux_x86_64.tar.g
+    vars:
+      APP: lazygit
+      REPO: jesseduffield/lazygit
+      LATEST:
+        sh: curl -s "https://api.github.com/repos/{{.REPO}}/releases/latest" | jq -r .tag_name
+      VERSION:
+        sh: lazygit --version | awk '{print $3}' || echo "not-found"
+      SHORT:
+        sh: echo "{{.LATEST}}" | sed -E 's/v//'
+    status:
+      - test "{{.VERSION}}" = "{{.LATEST}}"
+    cmds:
+      - curl -Lso /tmp/{{.APP}}_{{.LATEST}}.tar.gz "https://github.com/{{.REPO}}/releases/download/{{.LATEST}}/{{.APP}}_{{.SHORT}}_{{.OS_CAP}}_{{.ARCH_2}}.tar.gz"
+      - defer: rm /tmp/{{.APP}}_{{.LATEST}}.tar.gz
+      #- tar tvf /tmp/{{.APP}}_{{.LATEST}}.tar.gz
+      - tar xvf /tmp/{{.APP}}_{{.LATEST}}.tar.gz {{.APP}} -O > ./{{.APP}}
+      - defer: rm {{.APP}}
+      - sudo install {{.APP}} {{.TARGET}}
